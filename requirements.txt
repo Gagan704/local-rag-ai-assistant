@@ -1,0 +1,5 @@
+ollama
+pypdf
+sentence-transformers
+scikit-learn
+gradio
