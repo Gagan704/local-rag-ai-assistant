@@ -3,3 +3,6 @@ pypdf
 sentence-transformers
 scikit-learn
 gradio
+python-docx
+openpyxl
+python-pptx
