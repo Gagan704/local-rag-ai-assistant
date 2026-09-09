@@ -6,7 +6,8 @@ def search_documents(
     chunks,
     chunk_embeddings,
     embedding_model,
-    top_k=5
+    top_k=5,
+    min_score=0.20
 ):
     # Convert user question into an embedding
     query_embedding = embedding_model.encode([query])
@@ -18,7 +19,11 @@ def search_documents(
     )[0]
 
     # Words from user's question
-    query_words = set(query.lower().split())
+    query_words = {
+        word.lower().strip(".,!?;:")
+        for word in query.split()
+        if len(word) > 3
+    }
 
     results = []
 
@@ -30,13 +35,18 @@ def search_documents(
         keyword_matches = sum(
             1
             for word in query_words
-            if len(word) > 3 and word in text_lower
+            if word in text_lower
         )
 
-        # Hybrid score
+        keyword_score = (
+            keyword_matches / len(query_words)
+            if query_words
+            else 0
+        )
+
         final_score = (
-            similarities[index]
-            + keyword_matches * 0.05
+                similarities[index] * 0.85
+                + keyword_score * 0.15
         )
 
         results.append({
@@ -52,47 +62,14 @@ def search_documents(
         reverse=True
     )
 
+    results = [
+        result
+        for result in results
+        if result["score"] >= min_score
+    ]
+
     return results[:top_k]
 
 
 
 
-if __name__ == "__main__":
-
-    from document import read_pdf, create_document_chunks
-    from embeddings import embedding_model, create_embeddings
-
-    pages = read_pdf("../data/my_document.pdf")
-
-    documents = [
-        {
-            "filename": "my_document.pdf",
-            "page": page["page"],
-            "text": page["text"]
-        }
-        for page in pages
-    ]
-
-    chunks = create_document_chunks(documents)
-
-    chunk_embeddings = create_embeddings(chunks)
-
-    query = "What is the main objective of this project?"
-
-    results = search_documents(
-        query,
-        chunks,
-        chunk_embeddings,
-        embedding_model,
-        top_k=5
-    )
-
-    print("\nTop results:\n")
-
-    for result in results:
-        print(
-            f"Page {result['page']} | "
-            f"Score: {result['score']:.3f}"
-        )
-        print(result["text"][:300])
-        print("-" * 60)

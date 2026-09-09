@@ -22,6 +22,12 @@ def answer_question(
         top_k=top_k
     )
 
+    if not results:
+        return {
+            "answer": "I could not find relevant information in the uploaded documents.",
+            "sources": []
+        }
+
     # Step 2: Build the context for Gemma
     context_parts = []
 
@@ -80,41 +86,3 @@ Instructions:
 
 
 
-
-if __name__ == "__main__":
-
-    from document import read_pdf, create_document_chunks
-    from embeddings import embedding_model, create_embeddings
-
-    pages = read_pdf("../data/my_document.pdf")
-
-    documents = [
-        {
-            "filename": "my_document.pdf",
-            "page": page["page"],
-            "text": page["text"]
-        }
-        for page in pages
-    ]
-
-    chunks = create_document_chunks(documents)
-
-    chunk_embeddings = create_embeddings(chunks)
-
-    query = "What is the main objective of this project?"
-
-    result = answer_question(
-        query,
-        chunks,
-        chunk_embeddings,
-        embedding_model,
-        top_k=5
-    )
-
-    print("\nANSWER:\n")
-    print(result["answer"])
-
-    print("\nSOURCES:\n")
-
-    for source, page in result["sources"]:
-        print(f"📄 {source} — Page {page}")

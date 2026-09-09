@@ -168,6 +168,7 @@ def load_documents(folder_path):
         for page in pages:
             all_pages.append({
                 "filename": filename,
+                "file_type": os.path.splitext(filename)[1].lower(),
                 "page": page["page"],
                 "text": page["text"]
             })
@@ -175,8 +176,7 @@ def load_documents(folder_path):
     return all_pages
 
 
-def split_text(text, chunk_size=1000):
-
+def split_text(text, chunk_size=1000, overlap=150):
     text = "\n".join(
         line.strip()
         for line in text.splitlines()
@@ -184,21 +184,29 @@ def split_text(text, chunk_size=1000):
     )
 
     paragraphs = text.split("\n\n")
-
     chunks = []
     current_chunk = ""
 
     for paragraph in paragraphs:
-
         if len(current_chunk) + len(paragraph) <= chunk_size:
             current_chunk += paragraph + "\n\n"
-
         else:
-
             if current_chunk.strip():
                 chunks.append(current_chunk.strip())
 
-            current_chunk = paragraph + "\n\n"
+            overlap_text = current_chunk[-overlap:]
+
+            remaining_space = chunk_size - len(overlap_text) - 2
+
+            if len(paragraph) > remaining_space:
+                paragraph = paragraph[:remaining_space]
+
+            current_chunk = (
+                    overlap_text
+                    + "\n\n"
+                    + paragraph
+                    + "\n\n"
+            )
 
     if current_chunk.strip():
         chunks.append(current_chunk.strip())
@@ -221,10 +229,10 @@ def create_document_chunks(documents):
         chunks = split_text(document["text"])
 
         for chunk in chunks:
-
             all_chunks.append({
                 "text": chunk,
                 "source": document["filename"],
+                "file_type": document["file_type"],
                 "page": document["page"]
             })
 
