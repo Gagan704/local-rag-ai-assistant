@@ -1,15 +1,31 @@
 from sklearn.metrics.pairwise import cosine_similarity
+from indexer import load_index
 
 
 def search_documents(
     query,
-    chunks,
-    chunk_embeddings,
-    embedding_model,
+    chunks=None,
+    chunk_embeddings=None,
+    embedding_model=None,
     top_k=5,
     min_score=0.20
 ):
+
+    if chunks is None or chunk_embeddings is None:
+        index = load_index()
+
+        if index is None:
+            raise FileNotFoundError(
+                "No document index found. Build the index first."
+            )
+
+        chunks = index["chunks"]
+        chunk_embeddings = index["embeddings"]
+
     # Convert user question into an embedding
+    if embedding_model is None:
+        from embeddings import embedding_model
+
     query_embedding = embedding_model.encode([query])
 
     # Compare  question with every document chunk

@@ -8,9 +8,9 @@ MODEL_NAME = "gemma3"
 
 def answer_question(
     query,
-    chunks,
-    chunk_embeddings,
-    embedding_model,
+    chunks=None,
+    chunk_embeddings=None,
+    embedding_model=None,
     top_k=5
 ):
     # Step 1: Retrieve relevant document chunks
