@@ -68,6 +68,7 @@ def search_documents(
         results.append({
             "text": chunk["text"],
             "source": chunk["source"],
+            "file_type": chunk["file_type"],
             "page": chunk["page"],
             "score": final_score
         })

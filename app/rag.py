@@ -73,15 +73,32 @@ Instructions:
     answer = response["message"]["content"]
 
     # Step 5: Return answer and sources
-    sources = list(dict.fromkeys(
-        (result["source"], result["page"])
-        for result in results
-    ))
+    sources = []
+
+    seen_sources = set()
+
+    for result in results:
+        source_key = (
+            result["source"],
+            result["page"]
+        )
+
+        if source_key not in seen_sources:
+            sources.append({
+                "source": result["source"],
+                "file_type": result["file_type"],
+                "page": result["page"],
+                "score": round(result["score"], 3)
+            })
+
+            seen_sources.add(source_key)
 
     return {
         "answer": answer,
         "sources": sources
     }
+
+
 
 
 
